@@ -50,9 +50,9 @@ class Theme implements ThemeInterface {
 					$key = $path;
 				}
 				$title = ucwords(str_replace(['-', '_'], ' ', basename($key)));
-				$html .= '<li class="baun-nav-item baun-nav-has-children">' . $title . $this->navToHTML($value, false) . '</li>';
+				$html .= '<li class="baun-nav-item baun-nav-has-children baun-nav-section-' . $this->slugify($title) . '"><span class="baun-nav-section-title">' . $title . '</span>' . $this->navToHTML($value, false) . '</li>';
 			} else {
-				$html .= '<li class="baun-nav-item item-' . $key . ($value['active'] ? ' baun-nav-active' : '') . '">';
+				$html .= '<li class="baun-nav-item baun-nav-item-' . $this->slugify($value['title']) . ($value['active'] ? ' baun-nav-active' : '') . '">';
 				$html .= '<a href="' . ($value['url'] == '/' ? $value['url'] : '/' . $value['url']) . '">' . $value['title'] . '</a>';
 				$html .= '</li>';
 			}
@@ -60,6 +60,26 @@ class Theme implements ThemeInterface {
 
 		$html .= '</ul>';
 		return $html;
+	}
+
+	private function slugify($text)
+	{
+		// replace non letter or digits by -
+		$text = preg_replace('~[^\\pL\d]+~u', '-', $text);
+		// trim
+		$text = trim($text, '-');
+		// transliterate
+		$text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+		// lowercase
+		$text = strtolower($text);
+		// remove unwanted characters
+		$text = preg_replace('~[^-\w]+~', '', $text);
+
+		if (empty($text)) {
+			return 'n-a';
+		}
+
+		return $text;
 	}
 
 }
