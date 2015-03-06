@@ -37,6 +37,11 @@ class Baun {
 			die('Missing content parser');
 		}
 		$this->contentParser = new $this->config['providers']['contentParser'];
+
+		// Debug
+		if (!isset($this->config['debug'])) {
+			$this->config['debug'] = false;
+		}
 	}
 
 	public function run()
@@ -46,6 +51,10 @@ class Baun {
 		try {
 			$this->router->dispatch();
 		} catch(\Exception $e) {
+			if ($this->config['debug']) {
+				echo $e->getMessage();
+			}
+
 			$this->theme->render('404');
 		}
 	}
@@ -57,6 +66,18 @@ class Baun {
 		}
 		if (!isset($this->config['content_extension'])) {
 			die('Missing content extension');
+		}
+		if (!isset($this->config['blog_folder']) || !$this->config['blog_folder']) {
+			$this->config['blog_folder'] = 'blog';
+		}
+		if (!isset($this->config['posts_per_page']) || !is_int($this->config['posts_per_page'])) {
+			$this->config['posts_per_page'] = 10;
+		}
+		if (!isset($this->config['excerpt_words']) || !is_int($this->config['excerpt_words'])) {
+			$this->config['excerpt_words'] = 30;
+		}
+		if (!isset($this->config['date_format']) || !$this->config['date_format']) {
+			$this->config['date_format'] = 'jS F Y';
 		}
 
 		$files = $this->getFiles($this->config['content_path'], $this->config['content_extension']);
