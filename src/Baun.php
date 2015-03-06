@@ -3,6 +3,7 @@
 class Baun {
 
 	protected $config;
+	protected $events;
 	protected $router;
 	protected $theme;
 	protected $contentParser;
@@ -14,6 +15,12 @@ class Baun {
 			die('Missing config/app.php');
 		}
 		$this->config = require BASE_PATH . 'config/app.php';
+
+		// Events
+		if (!isset($this->config['providers']['events']) || !class_exists($this->config['providers']['events'])) {
+			die('Missing events provider');
+		}
+		$this->events = new $this->config['providers']['events'];
 
 		// Router
 		if (!isset($this->config['providers']['router']) || !class_exists($this->config['providers']['router'])) {
@@ -45,20 +52,28 @@ class Baun {
 		}
 
 		$this->blogPath = null;
+
+		$this->events->emit('baun.loaded', $this->config, $this->blogPath);
 	}
 
 	public function run()
 	{
+		$this->events->emit('baun.beforeSetupRoutes');
 		$this->setupRoutes();
+		$this->events->emit('baun.afterSetupRoutes');
 
 		try {
+			$this->events->emit('baun.beforeDispatch', $this->router);
 			$this->router->dispatch();
+			$this->events->emit('baun.afterDispatch');
 		} catch(\Exception $e) {
 			if ($this->config['debug']) {
 				echo $e->getMessage();
 			}
 
+			$this->events->emit('baun.before404');
 			$this->theme->render('404');
+			$this->events->emit('baun.after404');
 		}
 	}
 
@@ -84,11 +99,14 @@ class Baun {
 		}
 
 		$files = $this->getFiles($this->config['content_path'], $this->config['content_extension']);
+		$this->events->emit('baun.getFiles', $files);
 
 		$navigation = $this->filesToNav($files, $this->router->currentUri());
+		$this->events->emit('baun.filesToNav', $navigation);
 		$this->theme->custom('baun_nav', $navigation);
 
 		$routes = $this->filesToRoutes($files);
+		$this->events->emit('baun.filesToRoutes', $routes);
 		foreach ($routes as $route) {
 			$this->router->add('GET', $route['route'], function() use ($route) {
 				$data = $this->getFileData($route['path']);
@@ -97,12 +115,14 @@ class Baun {
 					$template = $data['info']['template'];
 				}
 
+				$this->events->emit('baun.beforePageRender', $template, $data);
 				return $this->theme->render($template, $data);
 			});
 		}
 
 		if ($this->blogPath) {
 			$posts = $this->filesToPosts($files);
+			$this->events->emit('baun.filesToPosts', $posts);
 			if (!empty($posts)) {
 				foreach ($posts as $post) {
 					$this->router->add('GET', $post['route'], function() use ($post, $posts) {
@@ -122,6 +142,7 @@ class Baun {
 						$data['published'] = $published;
 						$data['posts'] = $posts;
 
+						$this->events->emit('baun.beforePostRender', $template, $data);
 						return $this->theme->render($template, $data);
 					});
 				}
@@ -147,6 +168,7 @@ class Baun {
 			];
 
 			$this->router->add('GET', $this->config['blog_folder'], function() use ($paginatedPosts, $pagination) {
+				$this->events->emit('baun.beforeBlogRender', $paginatedPosts, $pagination);
 				return $this->theme->render('blog', [
 					'posts' => $paginatedPosts,
 					'pagination' => $pagination
