@@ -213,9 +213,14 @@ class Baun {
 
 	protected function getFileData($route_path)
 	{
-		$file_path = $this->config['content_path'] . $route_path;
-		$file_contents = file_get_contents($file_path);
-		return $this->contentParser->parse($file_contents);
+		$file_path = $this->config['content_path'] . ltrim($route_path, '/');
+
+		if (file_exists($file_path)) {
+			$file_contents = file_get_contents($file_path);
+			return $this->contentParser->parse($file_contents);
+		}
+
+		return null;
 	}
 
 }
