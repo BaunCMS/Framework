@@ -54,6 +54,15 @@ class Baun {
 		$contentParserProvider = $this->config->get('providers.contentParser');
 		$this->contentParser = new $contentParserProvider;
 
+		// Plugins
+		if (!empty($this->config->get('plugins'))) {
+			foreach ($this->config->get('plugins') as $pluginClass) {
+				if (class_exists($pluginClass)) {
+					new $pluginClass($this->config, $this->events, $this->router, $this->theme, $this->contentParser);
+				}
+			}
+		}
+
 		// Debug
 		if (!$this->config->get('app.debug')) {
 			$this->config->set('app.debug', false);
