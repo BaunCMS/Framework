@@ -17,10 +17,17 @@ interface Router {
 	public function dispatch();
 
 	/**
-	 * Get the URI of the current page
+	 * Get the URI of the current request
 	 *
 	 * @return string
 	 */
 	public function currentUri();
+
+	/**
+	 * Get the base URL of the current request
+	 *
+	 * @return string
+	 */
+	public function baseUrl();
 
 }

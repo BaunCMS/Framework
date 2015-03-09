@@ -8,6 +8,13 @@ interface Theme {
 	public function __construct($themes_path);
 
 	/**
+	 * Add another path to look for templates
+	 *
+	 * @param string $path
+	 */
+	public function addPath($path);
+
+	/**
 	 * Render the given template
 	 *
 	 * @param string $template name of the template

@@ -14,8 +14,9 @@ interface Events {
 	/**
 	 * Emit the given event
 	 *
-	 * @param string $event
+	 * @param string $event event name
+	 * @param array $args optional args to pass to event listener
 	 */
-	public function emit($event);
+	public function emit($event, $args = []);
 
 }
