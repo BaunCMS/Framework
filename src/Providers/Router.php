@@ -1,16 +1,19 @@
 <?php namespace Baun\Providers;
 
 use Baun\Interfaces\Router as RouterInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Phroute\Phroute\RouteCollector;
 use Phroute\Phroute\Dispatcher;
 
 class Router implements RouterInterface {
 
 	protected $router;
+	protected $request;
 
 	public function __construct()
 	{
 		$this->router = new RouteCollector();
+		$this->request = Request::createFromGlobals();
 	}
 
 	public function add($method, $route, $function)
@@ -21,12 +24,17 @@ class Router implements RouterInterface {
 	public function dispatch()
 	{
 		$dispatcher = new Dispatcher($this->router->getData());
-		echo $dispatcher->dispatch($_SERVER['REQUEST_METHOD'], parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+		echo $dispatcher->dispatch($this->request->getMethod(), $this->request->getRequestUri());
 	}
 
 	public function currentUri()
 	{
-		return ltrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+		return $this->request->getRequestUri();
+	}
+
+	public function baseUrl()
+	{
+		return $this->request->getSchemeAndHttpHost();
 	}
 
 }

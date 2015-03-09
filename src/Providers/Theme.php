@@ -18,6 +18,15 @@ class Theme implements ThemeInterface {
 		echo $this->theme->render($template . '.html', $data);
 	}
 
+	public function addPath($path)
+	{
+		if (is_dir($path)) {
+			$loader = $this->theme->getLoader();
+			$loader->addPath($path);
+			$this->theme->setLoader($loader);
+		}
+	}
+
 	public function custom($name, $data)
 	{
 		$this->customData[$name] = $data;
