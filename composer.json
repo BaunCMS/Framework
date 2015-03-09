@@ -10,6 +10,7 @@
     ],
     "require": {
         "php": ">=5.4",
+        "symfony/http-foundation": "~2.6",
         "phroute/phroute": "~2.0",
         "twig/twig": "~1.0",
         "symfony/yaml": "~2.0",
