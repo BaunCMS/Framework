@@ -24,12 +24,12 @@ class Router implements RouterInterface {
 	public function dispatch()
 	{
 		$dispatcher = new Dispatcher($this->router->getData());
-		echo $dispatcher->dispatch($this->request->getMethod(), $this->request->getRequestUri());
+		echo $dispatcher->dispatch($this->request->getMethod(), $this->request->getPathInfo());
 	}
 
 	public function currentUri()
 	{
-		return $this->request->getRequestUri();
+		return ltrim($this->request->getPathInfo(), '/');
 	}
 
 	public function baseUrl()
