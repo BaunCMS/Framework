@@ -123,7 +123,6 @@ class Baun {
 		$files = $this->getFiles($this->config->get('app.content_path'), $this->config->get('app.content_extension'));
 		$this->events->emit('baun.getFiles', $files);
 
-		echo '<pre>'.print_r($this->router->currentUri(),true).'</pre>';
 		$navigation = $this->filesToNav($files, $this->router->currentUri());
 		$this->events->emit('baun.filesToNav', $navigation);
 		$this->theme->custom('baun_nav', $navigation);
