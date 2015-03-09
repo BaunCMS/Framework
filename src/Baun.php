@@ -68,6 +68,11 @@ class Baun {
 			$this->config->set('app.debug', false);
 		}
 
+		// Base URL
+		if (!$this->config->get('app.base_url')) {
+			$this->config->set('app.base_url', $this->router->baseUrl());
+		}
+
 		$this->blogPath = null;
 
 		$this->events->emit('baun.loaded', $this->config, $this->blogPath);
@@ -118,6 +123,7 @@ class Baun {
 		$files = $this->getFiles($this->config->get('app.content_path'), $this->config->get('app.content_extension'));
 		$this->events->emit('baun.getFiles', $files);
 
+		echo '<pre>'.print_r($this->router->currentUri(),true).'</pre>';
 		$navigation = $this->filesToNav($files, $this->router->currentUri());
 		$this->events->emit('baun.filesToNav', $navigation);
 		$this->theme->custom('baun_nav', $navigation);
@@ -181,7 +187,7 @@ class Baun {
 			$pagination = [
 				'total_pages' => $total_pages,
 				'current_page' => $page,
-				'base_url' => '/' . $this->config->get('blog.blog_folder')
+				'base_url' => $this->config->get('app.base_url') . '/' . $this->config->get('blog.blog_folder')
 			];
 
 			$this->router->add('GET', $this->config->get('blog.blog_folder'), function() use ($paginatedPosts, $pagination) {
@@ -391,14 +397,17 @@ class Baun {
 
 	protected function getFileData($route_path)
 	{
+		$data = null;
 		$file_path = $this->config->get('app.content_path') . ltrim($route_path, '/');
 
 		if (file_exists($file_path)) {
 			$file_contents = file_get_contents($file_path);
-			return $this->contentParser->parse($file_contents);
+			$data = $this->contentParser->parse($file_contents);
 		}
 
-		return null;
+		$data['base_url'] = $this->config->get('app.base_url');
+
+		return $data;
 	}
 
 }
