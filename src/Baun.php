@@ -1,5 +1,7 @@
 <?php namespace Baun;
 
+use Dflydev\DotAccessData\Data;
+
 class Baun {
 
 	protected $config;
@@ -11,44 +13,50 @@ class Baun {
 
 	public function __construct()
 	{
-		if (!file_exists(BASE_PATH . 'config/app.php')) {
-			die('Missing config/app.php');
+		$configData = [];
+		$configFiles = glob(BASE_PATH . 'config/*.php');
+		foreach ($configFiles as $configFile) {
+			$configData[basename($configFile, '.php')] = require $configFile;
 		}
-		$this->config = require BASE_PATH . 'config/app.php';
+		$this->config = new Data($configData);
 
 		// Events
-		if (!isset($this->config['providers']['events']) || !class_exists($this->config['providers']['events'])) {
+		if (!$this->config->get('providers.events') || !class_exists($this->config->get('providers.events'))) {
 			die('Missing events provider');
 		}
-		$this->events = new $this->config['providers']['events'];
+		$eventsProvider = $this->config->get('providers.events');
+		$this->events = new $eventsProvider;
 
 		// Router
-		if (!isset($this->config['providers']['router']) || !class_exists($this->config['providers']['router'])) {
+		if (!$this->config->get('providers.router') || !class_exists($this->config->get('providers.router'))) {
 			die('Missing router provider');
 		}
-		$this->router = new $this->config['providers']['router'];
+		$routerProvider = $this->config->get('providers.router');
+		$this->router = new $routerProvider;
 
 		// Theme
-		if (!isset($this->config['providers']['theme'])){
+		if (!$this->config->get('providers.theme')) {
 			die('Missing theme provider');
 		}
-		if (!isset($this->config['themes_path'])) {
+		if (!$this->config->get('app.themes_path')) {
 			die('Missing themes path');
 		}
-		if (!isset($this->config['theme']) || !is_dir($this->config['themes_path'] . $this->config['theme'])) {
+		if (!$this->config->get('app.theme') || !is_dir($this->config->get('app.themes_path') . $this->config->get('app.theme'))) {
 			die('Missing theme');
 		}
-		$this->theme = new $this->config['providers']['theme']($this->config['themes_path'] . $this->config['theme']);
+		$themeProvider = $this->config->get('providers.theme');
+		$this->theme = new $themeProvider($this->config->get('app.themes_path') . $this->config->get('app.theme'));
 
 		// Content Parser
-		if (!isset($this->config['providers']['contentParser'])){
+		if (!$this->config->get('providers.contentParser')) {
 			die('Missing content parser');
 		}
-		$this->contentParser = new $this->config['providers']['contentParser'];
+		$contentParserProvider = $this->config->get('providers.contentParser');
+		$this->contentParser = new $contentParserProvider;
 
 		// Debug
-		if (!isset($this->config['debug'])) {
-			$this->config['debug'] = false;
+		if (!$this->config->get('app.debug')) {
+			$this->config->set('app.debug', false);
 		}
 
 		$this->blogPath = null;
@@ -67,7 +75,7 @@ class Baun {
 			$this->router->dispatch();
 			$this->events->emit('baun.afterDispatch');
 		} catch(\Exception $e) {
-			if ($this->config['debug']) {
+			if ($this->config->get('app.debug')) {
 				echo $e->getMessage();
 			}
 
@@ -79,26 +87,26 @@ class Baun {
 
 	protected function setupRoutes()
 	{
-		if (!isset($this->config['content_path']) || !is_dir($this->config['content_path'])) {
+		if (!$this->config->get('app.content_path') || !is_dir($this->config->get('app.content_path'))) {
 			die('Missing content path');
 		}
-		if (!isset($this->config['content_extension'])) {
+		if (!$this->config->get('app.content_extension')) {
 			die('Missing content extension');
 		}
-		if (!isset($this->config['blog_folder']) || !$this->config['blog_folder']) {
-			$this->config['blog_folder'] = 'blog';
+		if (!$this->config->get('blog.blog_folder') || !$this->config->get('blog.blog_folder')) {
+			$this->config->set('blog.blog_folder', 'blog');
 		}
-		if (!isset($this->config['posts_per_page']) || !is_int($this->config['posts_per_page'])) {
-			$this->config['posts_per_page'] = 10;
+		if (!$this->config->get('blog.posts_per_page') || !is_int($this->config->get('blog.posts_per_page'))) {
+			$this->config->set('blog.posts_per_page', 10);
 		}
-		if (!isset($this->config['excerpt_words']) || !is_int($this->config['excerpt_words'])) {
-			$this->config['excerpt_words'] = 30;
+		if (!$this->config->get('blog.excerpt_words') || !is_int($this->config->get('blog.excerpt_words'))) {
+			$this->config->set('blog.excerpt_words', 30);
 		}
-		if (!isset($this->config['date_format']) || !$this->config['date_format']) {
-			$this->config['date_format'] = 'jS F Y';
+		if (!$this->config->get('blog.date_format') || !$this->config->get('blog.date_format')) {
+			$this->config->set('blog.date_format', 'jS F Y');
 		}
 
-		$files = $this->getFiles($this->config['content_path'], $this->config['content_extension']);
+		$files = $this->getFiles($this->config->get('app.content_path'), $this->config->get('app.content_extension'));
 		$this->events->emit('baun.getFiles', $files);
 
 		$navigation = $this->filesToNav($files, $this->router->currentUri());
@@ -131,13 +139,13 @@ class Baun {
 						if (isset($data['info']['template']) && $data['info']['template']) {
 							$template = $data['info']['template'];
 						}
-						$published = date($this->config['date_format']);
+						$published = date($this->config->get('blog.date_format'));
 						if (preg_match('/^\d+\-/', basename($post['path']))) {
 							list($time, $path) = explode('-', basename($post['path']), 2);
-							$published = date($this->config['date_format'], strtotime($time));
+							$published = date($this->config->get('blog.date_format'), strtotime($time));
 						}
 						if (isset($data['info']['published'])) {
-							$published = date($this->config['date_format'], strtotime($data['info']['published']));
+							$published = date($this->config->get('blog.date_format'), strtotime($data['info']['published']));
 						}
 						$data['published'] = $published;
 						$data['posts'] = $posts;
@@ -154,7 +162,7 @@ class Baun {
 				$offset = $page - 1;
 			}
 
-			$paginatedPosts = array_chunk($posts, $this->config['posts_per_page']);
+			$paginatedPosts = array_chunk($posts, $this->config->get('blog.posts_per_page'));
 			$total_pages = count($paginatedPosts);
 			if (isset($paginatedPosts[$offset])) {
 				$paginatedPosts = $paginatedPosts[$offset];
@@ -164,10 +172,10 @@ class Baun {
 			$pagination = [
 				'total_pages' => $total_pages,
 				'current_page' => $page,
-				'base_url' => '/' . $this->config['blog_folder']
+				'base_url' => '/' . $this->config->get('blog.blog_folder')
 			];
 
-			$this->router->add('GET', $this->config['blog_folder'], function() use ($paginatedPosts, $pagination) {
+			$this->router->add('GET', $this->config->get('blog.blog_folder'), function() use ($paginatedPosts, $pagination) {
 				$this->events->emit('baun.beforeBlogRender', $paginatedPosts, $pagination);
 				return $this->theme->render('blog', [
 					'posts' => $paginatedPosts,
@@ -189,7 +197,7 @@ class Baun {
 			if (!in_array($value,array('.','..'))) {
 				$ext = pathinfo($value, PATHINFO_EXTENSION);
 				if (is_dir($dir . DIRECTORY_SEPARATOR . $value)) {
-					if (!$this->blogPath && ($value == $this->config['blog_folder'] || preg_match('/^(\d+-)' . $this->config['blog_folder'] . '/', $value))) {
+					if (!$this->blogPath && ($value == $this->config->get('blog.blog_folder') || preg_match('/^(\d+-)' . $this->config->get('blog.blog_folder') . '/', $value))) {
 						$this->blogPath = $dir . DIRECTORY_SEPARATOR . $value;
 					}
 					$dirs[$value] = $this->getFiles($dir . DIRECTORY_SEPARATOR . $value, $extension, false);
@@ -229,7 +237,7 @@ class Baun {
 	protected function filesToRoutes($files, $route_prefix = '', $path_prefix = '')
 	{
 		$result = [];
-		$blogBase = str_replace($this->config['content_path'], '', $this->blogPath);
+		$blogBase = str_replace($this->config->get('app.content_path'), '', $this->blogPath);
 
 		foreach ($files as $key => $value) {
 			if (!is_int($key)) {
@@ -242,7 +250,7 @@ class Baun {
 					}
 				}
 			} else {
-				$route = str_replace($this->config['content_extension'], '', $value['nice']);
+				$route = str_replace($this->config->get('app.content_extension'), '', $value['nice']);
 				if ($route == 'index') {
 					$route = '/';
 				}
@@ -260,7 +268,7 @@ class Baun {
 	protected function filesToNav($files, $currentUri, $route_prefix = '', $path_prefix = '')
 	{
 		$result = [];
-		$blogBase = str_replace($this->config['content_path'], '', $this->blogPath);
+		$blogBase = str_replace($this->config->get('app.content_path'), '', $this->blogPath);
 
 		foreach ($files as $key => $value) {
 			if (!is_int($key)) {
@@ -285,7 +293,7 @@ class Baun {
 					}
 				}
 			} elseif ($path_prefix != $blogBase . '/') {
-				$route = str_replace($this->config['content_extension'], '', $value['nice']);
+				$route = str_replace($this->config->get('app.content_extension'), '', $value['nice']);
 				if ($route == 'index') {
 					$route = '/';
 				}
@@ -320,7 +328,7 @@ class Baun {
 	{
 		$result = [];
 		$posts = [];
-		$blogBase = str_replace($this->config['content_path'], '', $this->blogPath);
+		$blogBase = str_replace($this->config->get('app.content_path'), '', $this->blogPath);
 
 		foreach ($files as $key => $value) {
 			if ($key === $blogBase) {
@@ -330,7 +338,7 @@ class Baun {
 		}
 
 		foreach ($posts as $post) {
-			$route = str_replace($this->config['content_extension'], '', $post['nice']);
+			$route = str_replace($this->config->get('app.content_extension'), '', $post['nice']);
 			$routeBase = basename($blogBase);
 			if (preg_match('/^\d+\-/', $blogBase)) {
 				list($index, $path) = explode('-', $blogBase, 2);
@@ -346,17 +354,17 @@ class Baun {
 			if (isset($data['content'])) {
 				$excerpt = strip_tags($data['content']);
 				$words = explode(' ', $excerpt);
-				if (count($words) > $this->config['excerpt_words'] && $this->config['excerpt_words'] > 0) {
-					$excerpt = implode(' ', array_slice($words, 0, $this->config['excerpt_words'])) . '...';
+				if (count($words) > $this->config->get('blog.excerpt_words') && $this->config->get('blog.excerpt_words') > 0) {
+					$excerpt = implode(' ', array_slice($words, 0, $this->config->get('blog.excerpt_words'))) . '...';
 				}
 			}
-			$published = date($this->config['date_format']);
+			$published = date($this->config->get('blog.date_format'));
 			if (preg_match('/^\d+\-/', $post['raw'])) {
 				list($time, $path) = explode('-', $post['raw'], 2);
-				$published = date($this->config['date_format'], strtotime($time));
+				$published = date($this->config->get('blog.date_format'), strtotime($time));
 			}
 			if (isset($data['info']['published'])) {
-				$published = date($this->config['date_format'], strtotime($data['info']['published']));
+				$published = date($this->config->get('blog.date_format'), strtotime($data['info']['published']));
 			}
 
 			$result[] = [
@@ -374,7 +382,7 @@ class Baun {
 
 	protected function getFileData($route_path)
 	{
-		$file_path = $this->config['content_path'] . ltrim($route_path, '/');
+		$file_path = $this->config->get('app.content_path') . ltrim($route_path, '/');
 
 		if (file_exists($file_path)) {
 			$file_contents = file_get_contents($file_path);
