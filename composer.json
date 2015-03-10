@@ -1,7 +1,12 @@
 {
     "name": "bauncms/framework",
     "description": "The Baun Framework",
+    "keywords": ["cms", "baun"],
     "license": "MIT",
+    "support": {
+        "issues": "https://github.com/BaunCMS/Framework/issues",
+        "source": "https://github.com/BaunCMS/Framework"
+    },
     "authors": [
         {
             "name": "Gilbert Pellegrom",
