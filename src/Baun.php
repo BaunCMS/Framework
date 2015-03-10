@@ -13,12 +13,8 @@ class Baun {
 
 	public function __construct()
 	{
-		$configData = [];
-		$configFiles = glob(BASE_PATH . 'config/*.php');
-		foreach ($configFiles as $configFile) {
-			$configData[basename($configFile, '.php')] = require $configFile;
-		}
-		$this->config = new Data($configData);
+		// Config
+		$this->config = $this->loadConfigs();
 
 		// Events
 		if (!$this->config->get('providers.events') || !class_exists($this->config->get('providers.events'))) {
@@ -98,6 +94,25 @@ class Baun {
 			$this->theme->render('404');
 			$this->events->emit('baun.after404');
 		}
+	}
+
+	protected function loadConfigs()
+	{
+		$configData = [];
+
+		$rdi = new \RecursiveDirectoryIterator(BASE_PATH . 'config/');
+		$rii = new \RecursiveIteratorIterator($rdi);
+		$ri = new \RegexIterator($rii, '/(.*)\.php/', \RegexIterator::GET_MATCH);
+		$configFiles = array_keys(iterator_to_array($ri));
+
+		foreach ($configFiles as $configFile) {
+			$configKey = str_replace(BASE_PATH . 'config/', '', $configFile);
+			$configKey = str_replace(DIRECTORY_SEPARATOR, '-', strtolower($configKey));
+			$configKey = str_replace('.php', '', $configKey);
+			$configData[$configKey] = require $configFile;
+		}
+
+		return new Data($configData);
 	}
 
 	protected function setupRoutes()
