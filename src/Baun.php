@@ -57,7 +57,7 @@ class Baun {
 		// Plugins
 		$plugins = $this->config->get('plugins');
 		if (!empty($plugins)) {
-			foreach ($this->config->get('plugins') as $pluginClass) {
+			foreach ($plugins as $pluginClass) {
 				if (class_exists($pluginClass)) {
 					new $pluginClass($this->config, $this->events, $this->router, $this->theme, $this->contentParser);
 				}
