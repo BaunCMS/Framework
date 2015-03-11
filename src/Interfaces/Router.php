@@ -17,6 +17,22 @@ interface Router {
 	public function dispatch();
 
 	/**
+	 * Add a route filter
+	 *
+	 * @param string $name
+	 * @param function $callback
+	 */
+	public function filter($name, $callback);
+
+	/**
+	 * Create a route group
+	 *
+	 * @param array $filters
+	 * @param function $callback
+	 */
+	public function group($filters, $callback);
+
+	/**
 	 * Get the URI of the current request
 	 *
 	 * @return string

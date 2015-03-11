@@ -27,6 +27,16 @@ class Router implements RouterInterface {
 		echo $dispatcher->dispatch($this->request->getMethod(), $this->request->getPathInfo());
 	}
 
+	public function filter($name, $callback)
+	{
+		$this->router->filter($name, $callback);
+	}
+
+	public function group($filters, $callback)
+	{
+		$this->router->group($filters, $callback);
+	}
+
 	public function currentUri()
 	{
 		return ltrim($this->request->getPathInfo(), '/');
