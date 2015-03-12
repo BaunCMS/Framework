@@ -71,6 +71,7 @@ class Baun {
 		}
 
 		$this->blogPath = null;
+		$this->config->set('baun.blog_path', null);
 
 		$this->events->emit('baun.loaded', $this->config, $this->blogPath);
 	}
@@ -229,6 +230,7 @@ class Baun {
 				if (is_dir($dir . DIRECTORY_SEPARATOR . $value)) {
 					if (!$this->blogPath && ($value == $this->config->get('blog.blog_folder') || preg_match('/^(\d+-)' . $this->config->get('blog.blog_folder') . '/', $value))) {
 						$this->blogPath = $dir . DIRECTORY_SEPARATOR . $value;
+						$this->config->set('baun.blog_path', $this->blogPath);
 					}
 					$dirs[$value] = $this->getFiles($dir . DIRECTORY_SEPARATOR . $value, $extension, false);
 				} elseif('.' . $ext == $extension) {
