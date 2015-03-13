@@ -31,12 +31,16 @@ class PublishAssets extends Command {
 			return $output->writeln('<comment>No assets found</comment>');
 		}
 
-		$files = glob(BASE_PATH . 'vendor/' . $plugin . '/assets/*');
+		$rdi = new \RecursiveDirectoryIterator(BASE_PATH . 'vendor/' . $plugin . '/assets/');
+		$rii = new \RecursiveIteratorIterator($rdi);
+		$files = array_keys(iterator_to_array($rii));
 		if (!empty($files)) {
 			$error = false;
 			foreach ($files as $file) {
 				$fileName = basename($file);
-				$destFolder = BASE_PATH . 'public/assets/plugins/' . $plugin . '/';
+				if ($fileName == '.' || $fileName == '..') continue;
+
+				$destFolder = str_replace(BASE_PATH . 'vendor/' . $plugin . '/assets', BASE_PATH . 'public/assets/plugins/' . $plugin, dirname($file));
 				if (!is_dir($destFolder)) {
 					if (is_writable(BASE_PATH . 'public/assets')) {
 						mkdir($destFolder, 0777, true);
@@ -45,7 +49,7 @@ class PublishAssets extends Command {
 					}
 				}
 
-				if (!copy($file, $destFolder . $fileName)) {
+				if (!copy($file, $destFolder . '/' . $fileName)) {
 					$error = true;
 					$output->writeln('<error>Error: Failed to copy ' . $fileName . '</error>');
 				}
