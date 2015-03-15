@@ -423,6 +423,7 @@ class Baun {
 		}
 
 		$data['base_url'] = $this->config->get('app.base_url');
+		$data['theme_url'] = $data['base_url'] . str_replace(BASE_PATH, '/', $this->config->get('app.themes_path')) . $this->config->get('app.theme');
 
 		return $data;
 	}
