@@ -70,6 +70,9 @@ class Baun {
 			$this->config->set('app.base_url', $this->router->baseUrl());
 		}
 
+		// Theme URL
+		$this->config->set('app.theme_url', '/themes/' . $this->config->get('app.theme'));
+
 		$this->blogPath = null;
 		$this->config->set('baun.blog_path', null);
 
@@ -423,7 +426,7 @@ class Baun {
 		}
 
 		$data['base_url'] = $this->config->get('app.base_url');
-		$data['theme_url'] = $data['base_url'] . str_replace(BASE_PATH, '/', $this->config->get('app.themes_path')) . $this->config->get('app.theme');
+		$data['theme_url'] = $this->config->get('app.theme_url');
 
 		return $data;
 	}
