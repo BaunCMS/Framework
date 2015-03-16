@@ -93,6 +93,8 @@ class Baun {
 			$this->router->dispatch();
 			$this->events->emit('baun.afterDispatch');
 		} catch(\Exception $e) {
+			header('HTTP/1.0 404 Not Found');
+
 			if ($this->config->get('app.debug')) {
 				echo $e->getMessage();
 			}
