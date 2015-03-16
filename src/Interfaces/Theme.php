@@ -15,6 +15,14 @@ interface Theme {
 	public function addPath($path);
 
 	/**
+	 * Add a global variable (available in all templates)
+	 *
+	 * @param string $name name of the variable
+	 * @param mixed $value
+	 */
+	public function addGlobal($name, $value);
+
+	/**
 	 * Render the given template
 	 *
 	 * @param string $template name of the template

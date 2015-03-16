@@ -27,6 +27,11 @@ class Theme implements ThemeInterface {
 		}
 	}
 
+	public function addGlobal($name, $value)
+	{
+		$this->theme->addGlobal($name, $value);
+	}
+
 	public function custom($name, $data)
 	{
 		$this->customData[$name] = $data;
