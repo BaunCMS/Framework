@@ -79,6 +79,11 @@ class Baun {
 
 	public function run()
 	{
+		$this->events->emit('baun.beforeGlobals', $this->theme);
+		$this->theme->addGlobal('base_url', $this->config->get('app.base_url'));
+		$this->theme->addGlobal('theme_url', $this->config->get('baun.theme_url'));
+		$this->events->emit('baun.afterGlobals', $this->theme);
+
 		$this->events->emit('baun.beforeSetupRoutes');
 		$this->setupRoutes();
 		$this->events->emit('baun.afterSetupRoutes');
@@ -422,9 +427,6 @@ class Baun {
 			$file_contents = file_get_contents($file_path);
 			$data = $this->contentParser->parse($file_contents);
 		}
-
-		$data['base_url'] = $this->config->get('app.base_url');
-		$data['theme_url'] = $this->config->get('app.theme_url');
 
 		return $data;
 	}
