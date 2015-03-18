@@ -148,6 +148,12 @@ class Baun {
 		$files = $this->getFiles($this->config->get('app.content_path'), $this->config->get('app.content_extension'));
 		$this->events->emit('baun.getFiles', $files);
 
+		$posts = null;
+		if ($this->blogPath) {
+			$posts = $this->filesToPosts($files);
+			$this->events->emit('baun.filesToPosts', $posts);
+		}
+
 		$navigation = $this->filesToNav($files, $this->router->currentUri());
 		$this->events->emit('baun.filesToNav', $navigation);
 		$this->theme->custom('baun_nav', $navigation);
@@ -155,8 +161,9 @@ class Baun {
 		$routes = $this->filesToRoutes($files);
 		$this->events->emit('baun.filesToRoutes', $routes);
 		foreach ($routes as $route) {
-			$this->router->add('GET', $route['route'], function() use ($route) {
+			$this->router->add('GET', $route['route'], function() use ($route, $posts) {
 				$data = $this->getFileData($route['path']);
+				$data['posts'] = $posts;
 				$template = 'page';
 				if (isset($data['info']['template']) && $data['info']['template']) {
 					$template = $data['info']['template'];
@@ -167,9 +174,7 @@ class Baun {
 			});
 		}
 
-		if ($this->blogPath) {
-			$posts = $this->filesToPosts($files);
-			$this->events->emit('baun.filesToPosts', $posts);
+		if ($posts) {
 			if (!empty($posts)) {
 				foreach ($posts as $post) {
 					$this->router->add('GET', $post['route'], function() use ($post, $posts) {
