@@ -115,7 +115,7 @@ class Baun {
 		$configFiles = array_keys(iterator_to_array($ri));
 
 		foreach ($configFiles as $configFile) {
-			$configKey = str_replace(BASE_PATH . 'config/', '', $configFile);
+			$configKey = str_replace(BASE_PATH . 'config' . DIRECTORY_SEPARATOR, '', $configFile);
 			$configKey = str_replace(DIRECTORY_SEPARATOR, '-', strtolower($configKey));
 			$configKey = str_replace('.php', '', $configKey);
 			$configData[$configKey] = require $configFile;
