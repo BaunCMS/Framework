@@ -316,7 +316,7 @@ class Baun {
 		$blogBase = str_replace($this->config->get('app.content_path'), '', $this->blogPath);
 
 		foreach ($files as $key => $value) {
-			if (!is_int($key)) {
+			if (!is_int($key) && $this->config->get('app.show_folders_on_nav') !== false) {
 				if ($key == $blogBase) {
 					$url = basename($blogBase);
 					if (preg_match('/^\d+\-/', $url)) {
@@ -337,7 +337,7 @@ class Baun {
 						$result[$key] = $this->filesToNav($value, $currentUri, $route_prefix . $key . '/', $path_prefix . $key . '/');
 					}
 				}
-			} elseif ($path_prefix != $blogBase . '/') {
+			} elseif (is_int($key) && $path_prefix != $blogBase . '/') {
 				$route = str_replace($this->config->get('app.content_extension'), '', $value['nice']);
 				if ($route == 'index') {
 					$route = '/';
