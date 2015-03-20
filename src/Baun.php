@@ -149,9 +149,30 @@ class Baun {
 		$this->events->emit('baun.getFiles', $files);
 
 		$posts = null;
+		$allPosts = null;
+		$postsPagination = [];
 		if ($this->blogPath) {
-			$posts = $this->filesToPosts($files);
-			$this->events->emit('baun.filesToPosts', $posts);
+			$allPosts = $this->filesToPosts($files);
+			$this->events->emit('baun.filesToPosts', $allPosts);
+
+			$page = isset($_GET['page']) && $_GET['page'] ? abs(intval($_GET['page'])) : 1;
+			$offset = 0;
+			if ($page > 1) {
+				$offset = $page - 1;
+			}
+
+			$posts = array_chunk($allPosts, $this->config->get('blog.posts_per_page'));
+			$total_pages = count($posts);
+			if (isset($posts[$offset])) {
+				$posts = $posts[$offset];
+			} else {
+				$posts = [];
+			}
+			$postsPagination = [
+				'total_pages' => $total_pages,
+				'current_page' => $page,
+				'base_url' => $this->config->get('app.base_url') . '/' . $this->config->get('blog.blog_folder')
+			];
 		}
 
 		$navigation = $this->filesToNav($files, $this->router->currentUri());
@@ -161,9 +182,11 @@ class Baun {
 		$routes = $this->filesToRoutes($files);
 		$this->events->emit('baun.filesToRoutes', $routes);
 		foreach ($routes as $route) {
-			$this->router->add('GET', $route['route'], function() use ($route, $posts) {
+			$this->router->add('GET', $route['route'], function() use ($route, $posts, $allPosts, $postsPagination) {
 				$data = $this->getFileData($route['path']);
+				$data['all_posts'] = $allPosts;
 				$data['posts'] = $posts;
+				$data['pagination'] = $postsPagination;
 				$template = 'page';
 				if (isset($data['info']['template']) && $data['info']['template']) {
 					$template = $data['info']['template'];
@@ -174,11 +197,14 @@ class Baun {
 			});
 		}
 
-		if ($posts) {
-			if (!empty($posts)) {
-				foreach ($posts as $post) {
-					$this->router->add('GET', $post['route'], function() use ($post, $posts) {
+		if ($allPosts) {
+			if (!empty($allPosts)) {
+				foreach ($allPosts as $post) {
+					$this->router->add('GET', $post['route'], function() use ($post, $posts, $allPosts, $postsPagination) {
 						$data = $this->getFileData($post['path']);
+						$data['all_posts'] = $allPosts;
+						$data['posts'] = $posts;
+						$data['pagination'] = $postsPagination;
 						$template = 'post';
 						if (isset($data['info']['template']) && $data['info']['template']) {
 							$template = $data['info']['template'];
@@ -192,7 +218,6 @@ class Baun {
 							$published = date($this->config->get('blog.date_format'), strtotime($data['info']['published']));
 						}
 						$data['published'] = $published;
-						$data['posts'] = $posts;
 
 						$this->events->emit('baun.beforePostRender', $template, $data);
 						return $this->theme->render($template, $data);
@@ -200,30 +225,12 @@ class Baun {
 				}
 			}
 
-			$page = isset($_GET['page']) && $_GET['page'] ? abs(intval($_GET['page'])) : 1;
-			$offset = 0;
-			if ($page > 1) {
-				$offset = $page - 1;
-			}
-
-			$paginatedPosts = array_chunk($posts, $this->config->get('blog.posts_per_page'));
-			$total_pages = count($paginatedPosts);
-			if (isset($paginatedPosts[$offset])) {
-				$paginatedPosts = $paginatedPosts[$offset];
-			} else {
-				$paginatedPosts = [];
-			}
-			$pagination = [
-				'total_pages' => $total_pages,
-				'current_page' => $page,
-				'base_url' => $this->config->get('app.base_url') . '/' . $this->config->get('blog.blog_folder')
-			];
-
-			$this->router->add('GET', $this->config->get('blog.blog_folder'), function() use ($paginatedPosts, $pagination) {
-				$this->events->emit('baun.beforeBlogRender', $paginatedPosts, $pagination);
+			$this->router->add('GET', $this->config->get('blog.blog_folder'), function() use ($posts, $allPosts, $postsPagination) {
+				$this->events->emit('baun.beforeBlogRender', $posts, $postsPagination);
 				return $this->theme->render('blog', [
-					'posts' => $paginatedPosts,
-					'pagination' => $pagination
+					'all_posts' => $allPosts,
+					'posts' => $posts,
+					'pagination' => $postsPagination,
 				]);
 			});
 		}
