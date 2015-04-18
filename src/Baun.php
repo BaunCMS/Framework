@@ -219,8 +219,9 @@ class Baun {
 						}
 						$data['published'] = $published;
 
-						$this->events->emit('baun.beforePostRender', $template, $data);
-						return $this->theme->render($template, $data);
+						$dataObject = json_decode(json_encode($data));
+						$this->events->emit('baun.beforePostRender', $template, $dataObject);
+						return $this->theme->render($template, (array)$dataObject);
 					});
 				}
 			}
