@@ -12,11 +12,10 @@ interface Events {
 	public function addListener($name, $listener, $priority = 0);
 
 	/**
-	 * Emit the given event
+	 * Emit the given event with optional additional parameters
 	 *
 	 * @param string $event event name
-	 * @param array $args optional args to pass to event listener
 	 */
-	public function emit($event, $args = []);
+	public function emit($event);
 
 }
