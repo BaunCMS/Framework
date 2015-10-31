@@ -37,9 +37,14 @@ class Theme implements ThemeInterface {
 		$this->customData[$name] = $data;
 
 		if (method_exists($this, 'custom_' . $name)) {
-			$function = new \Twig_SimpleFunction($name, [$this, 'custom_' . $name], ['is_safe' => ['html']]);
-			$this->theme->addFunction($function);
+			$this->addFunction($name, $this);
 		}
+	}
+
+	public function addFunction($name, $obj)
+	{
+		$function = new \Twig_SimpleFunction($name, [$obj, 'custom_' . $name], ['is_safe' => ['html']]);
+		$this->theme->addFunction($function);
 	}
 
 	public function custom_baun_nav()
