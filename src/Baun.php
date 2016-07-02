@@ -176,7 +176,18 @@ class Baun {
 		}
 
 		$navigation = $this->filesToNav($files, $this->router->currentUri());
-		$this->events->emit('baun.filesToNav', $navigation);
+
+		$navigationObject = new \stdClass();
+		$navigationObject->nodes = $navigation;
+
+		// $navigation is passed by value, $navigationObject is passed by reference
+		$this->events->emit('baun.filesToNav', $navigation, $navigationObject);
+
+		// If navigation nodes have been updated by the listener
+		if ($navigation !== $navigationObject->nodes) {
+			$navigation = $navigationObject->nodes;
+		}
+
 		$this->theme->custom('baun_nav', $navigation);
 
 		$routes = $this->filesToRoutes($files);
@@ -219,8 +230,9 @@ class Baun {
 						}
 						$data['published'] = $published;
 
-						$this->events->emit('baun.beforePostRender', $template, $data);
-						return $this->theme->render($template, $data);
+						$dataObject = json_decode(json_encode($data));
+						$this->events->emit('baun.beforePostRender', $template, $dataObject);
+						return $this->theme->render($template, (array)$dataObject);
 					});
 				}
 			}

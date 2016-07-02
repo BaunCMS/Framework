@@ -17,9 +17,9 @@ class Events implements EventsInterface {
 		$this->emitter->addListener($name, $listener, $priority);
 	}
 
-	public function emit($event, $args = [])
+	public function emit($event)
 	{
-		$this->emitter->emit($event, $args);
+		call_user_func_array(array($this->emitter, 'emit'), func_get_args());
 	}
 
 }
