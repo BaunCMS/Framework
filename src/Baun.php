@@ -426,6 +426,9 @@ class Baun {
 			if (preg_match('/^\d+\-/', $post['raw'])) {
 				list($time, $path) = explode('-', $post['raw'], 2);
 				$published = date($this->config->get('blog.date_format'), strtotime($time));
+				if ($this->config->get('blog.date_in_url')) {
+					$route = $time . '/' . $route;
+				}
 			}
 			if (isset($data['info']['published'])) {
 				$published = date($this->config->get('blog.date_format'), strtotime($data['info']['published']));
