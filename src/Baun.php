@@ -65,6 +65,9 @@ class Baun {
 			$this->config->set('app.debug', false);
 		}
 
+		// Date
+		$this->config->set('app.date', new \DateTime());
+
 		// Base URL
 		if (!$this->config->get('app.base_url')) {
 			$this->config->set('app.base_url', $this->router->baseUrl());
