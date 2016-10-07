@@ -407,12 +407,31 @@ class Baun {
 		foreach ($posts as $post) {
 			$route = str_replace($this->config->get('app.content_extension'), '', $post['nice']);
 			$routeBase = basename($blogBase);
+
 			if (preg_match('/^\d+\-/', $blogBase)) {
 				list($index, $path) = explode('-', $blogBase, 2);
 				$routeBase = $path;
 			}
 
 			$data = $this->getFileData($blogBase . '/' . $post['raw']);
+
+			$published = date($this->config->get('blog.date_format'));
+			if (preg_match('/^\d+\-/', $post['raw'])) {
+				list($time, $path) = explode('-', $post['raw'], 2);
+				$published = date($this->config->get('blog.date_format'), strtotime($time));
+				if ($this->config->get('blog.date_in_url')) {
+					$route = $time . '/' . $route;
+				}
+			}
+			if (isset($data['info']['published'])) {
+				$published = date($this->config->get('blog.date_format'), strtotime($data['info']['published']));
+			}
+
+			// Exclude posts published in the future
+			if (strtotime($published) > strtotime('now')) {
+				continue;
+			}
+
 			$title = isset($data['info']['title']) ? $data['info']['title'] : '';
 			if (!$title) {
 				$title = ucwords(str_replace(['-', '_'], ' ', basename($route)));
@@ -424,17 +443,6 @@ class Baun {
 				if (count($words) > $this->config->get('blog.excerpt_words') && $this->config->get('blog.excerpt_words') > 0) {
 					$excerpt = implode(' ', array_slice($words, 0, $this->config->get('blog.excerpt_words'))) . '...';
 				}
-			}
-			$published = date($this->config->get('blog.date_format'));
-			if (preg_match('/^\d+\-/', $post['raw'])) {
-				list($time, $path) = explode('-', $post['raw'], 2);
-				$published = date($this->config->get('blog.date_format'), strtotime($time));
-				if ($this->config->get('blog.date_in_url')) {
-					$route = $time . '/' . $route;
-				}
-			}
-			if (isset($data['info']['published'])) {
-				$published = date($this->config->get('blog.date_format'), strtotime($data['info']['published']));
 			}
 
 			$result[] = [
