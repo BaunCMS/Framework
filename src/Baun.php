@@ -75,8 +75,7 @@ class Baun {
 
 		$this->blogPath = null;
 		$this->config->set('baun.blog_path', null);
-		$this->config->set('baun.theme_url', $this->config->get('app.base_url') . str_replace(BASE_PATH . 'public/', '/', $this->config->get('app.themes_path')) . $this->config->get('app.theme'));
-
+		$this->config->set('baun.theme_url', preg_replace('#^https?:#', '', $this->config->get('app.base_url')) . str_replace(BASE_PATH . 'public/', '/', $this->config->get('app.themes_path')) . $this->config->get('app.theme'));
 		$this->events->emit('baun.loaded', $this->config);
 	}
 
