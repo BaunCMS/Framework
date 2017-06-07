@@ -114,13 +114,13 @@ class Baun {
 
 		$rdi = new \RecursiveDirectoryIterator(BASE_PATH . 'config/');
 		$rii = new \RecursiveIteratorIterator($rdi);
-		$ri = new \RegexIterator($rii, '/(.*)\.php/', \RegexIterator::GET_MATCH);
+		$ri = new \RegexIterator($rii, '/(.*)\.php$/', \RegexIterator::GET_MATCH);
 		$configFiles = array_keys(iterator_to_array($ri));
 
 		foreach ($configFiles as $configFile) {
 			$configKey = str_replace(BASE_PATH . 'config' . DIRECTORY_SEPARATOR, '', $configFile);
 			$configKey = str_replace(DIRECTORY_SEPARATOR, '-', strtolower($configKey));
-			$configKey = str_replace('.php', '', $configKey);
+			$configKey = substr($configKey, 0, -4);
 			$configData[$configKey] = require $configFile;
 		}
 
