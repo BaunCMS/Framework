@@ -425,6 +425,10 @@ class Baun {
 					$excerpt = implode(' ', array_slice($words, 0, $this->config->get('blog.excerpt_words'))) . '...';
 				}
 			}
+                        $content = '';
+                        if (isset($data['content'])) {
+                                $content = $data['content'];
+                        }
 			$published = date($this->config->get('blog.date_format'));
 			if (preg_match('/^\d+\-/', $post['raw'])) {
 				list($time, $path) = explode('-', $post['raw'], 2);
@@ -443,6 +447,7 @@ class Baun {
 				'title'     => $title,
 				'info'      => isset($data['info']) ? $data['info'] : '',
 				'excerpt'   => $excerpt,
+				'content'   => $content,
 				'published' => $published
 			];
 		}
