@@ -319,7 +319,10 @@ class Baun {
 			} else {
 				$route = str_replace($this->config->get('app.content_extension'), '', $value['nice']);
 				if ($route == 'index') {
-					$route = '/';
+					if (strlen($route_prefix) > 1 && substr($route_prefix, strlen($route_prefix)-1, 1) == '/')
+						$route = '';
+					else
+						$route = '/';
 				}
 
 				$result[] = [
@@ -362,7 +365,10 @@ class Baun {
 			} elseif ($path_prefix != $blogBase . '/') {
 				$route = str_replace($this->config->get('app.content_extension'), '', $value['nice']);
 				if ($route == 'index') {
-					$route = '/';
+					if (strlen($route_prefix) > 1 && substr($route_prefix, strlen($route_prefix)-1, 1) == '/')
+						$route = '';
+					else
+						$route = '/';
 				}
 				if (!$currentUri) {
 					$currentUri = '/';
